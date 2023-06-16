@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>{% block title %}MunchMetrics{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static '/assets/MunchMetricsLogo.ico' %}"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="{% static '/css/styles.css' %}" rel="stylesheet"/>
+    <!--Ratings-->
+    <link rel="stylesheet" href="{% static 'star-ratings/css/star-ratings.css' %}">
+    <script type="text/javascript" src="{% static 'star-ratings/js/dist/star-ratings.min.js' %}"></script>
+</head>
+<body>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark navbar-fixed-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'index' %}">MunchMetrics</a>
+
+        <ul class="navbar-nav ms-auto mb-4 mb-lg-0">
+
+            {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'AddMeal' %}">Add Meal</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'AddRestaurant' %}">Add Restaurant</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'ProfileView' request.user.id %}">
+                    {{ user }}'s Profile</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'Logout' %}">Logout</a></li>
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'Login' %}">Login to Add Meal</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'Login' %}">Login to Add Restaurant</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'Login' %}">Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'Register' %}">Register</a></li>
+            {% endif %}
+
+        </ul>
+    </div>
+    </div>
+</nav>
+
+<!-- Page content -->
+{% block content %}
+{% endblock %}
+
+<!-- Footer -->
+<footer class="py-5 bg-light">
+    <div class="container">
+        <p class="m-0 text-center text">Copyright &copy; MunchMetrics 2023</p>
+    </div>
+</footer>
+
+<!-- Bootstrap core JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Core theme JS -->
+<script src="{% static '/js/restaurant_scripts.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends 'Metrics/base.html' %}
+{% load static %}
+{% block title %}Login{% endblock %}
+
+{% block content %}
+    <br><br>
+
+    {% if user.is_authenticated %}
+        <div class="container text-align: center;">
+            <h1>You are Already Logged In</h1>
+        </div>
+    {% else %}
+        <div class="container text-align: center;">
+            <h1>Login</h1>
+            <form method="POST" action="{% url 'Login' %}">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label>Username</label>
+                    <input type="text" class="form-control" name="username"
+                           placeholder="Something like AnIdiotSandwich maybe?">
+                </div>
+                <div class="mb-3">
+                    <label>Password</label>
+                    <input type="password" class="form-control" name="password" placeholder="Choose your Tastiest one">
+                </div>
+
+                <button type="submit" class="btn btn-success">Submit</button>
+            </form>
+            <br><br>
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} m-2" id="msg" role="alert">
+
+                        {{ message }}
+                    </div>
+                {% endfor %}
+
+            {% endif %}
+
+        </div>
+
+    {% endif %}
+
+{% endblock %}

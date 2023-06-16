@@ -1,0 +1,37 @@
+{% extends 'Metrics/base.html' %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    {% if profile %}
+        <div class="container text-align: center">
+            <br><br>
+            <h1>{{ profile.user.username }}'s Profile</h1>
+            <br>
+            <h3>First name: {{ profile.user.first_name }}</h3>
+            <br>
+            <h3>Last name: {{ profile.user.last_name }}</h3>
+            <br>
+            <h3>Email Address: {{ profile.user.email }}</h3>
+            <br>
+            <h3>Last login: {{ profile.user.last_login }}</h3>
+            <br><br>
+            {% if restaurant_list %}
+                <h3>Restaurants you owned: </h3>
+                {% for restaurant in restaurant_list %}
+                    <a href="{% url 'Menu' restaurant.id %}">{{ restaurant.name }}</a>,
+                {% endfor %}
+                <br><br>
+            {% else %}
+                <h3>You don't own any restaurants yet..</h3>
+                <a href="{% url 'AddRestaurant' %}">Click to add one</a>
+                <br><br>
+            {% endif %}
+
+
+            <a href="{% url 'UpdateUser' %}" class="btn btn-success">Update Profile</a>
+
+        </div>
+
+    {% endif %}
+{% endblock %}

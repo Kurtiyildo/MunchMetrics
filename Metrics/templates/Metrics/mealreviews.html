@@ -1,0 +1,43 @@
+{% extends 'Metrics/base.html' %}
+{% load static %}
+{% block title %}{{ meal.name }}'s Reviews{% endblock %}
+
+{% block content %}
+    <section class="py-5">
+        <div class="container px-4 px-lg-5 mt-5">
+            <header><h2>{{ meal.name }}'s Reviews</h2></header>
+            {% if user.is_authenticated %}
+                {% if form %}
+                    <form method="POST">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <button type="submit" class="btn btn-success">Review the Munch!</button>
+                    </form>
+                {% endif %}
+            {% else %}
+                <h4>You must be logged in to review</h4>
+            {% endif %}
+            <br>
+            {% if meal.reviews.all %}
+                {% for review in meal.reviews.all %}
+                    <h3>{{ review.user }} says:</h3>
+                    <strong>{{ review.title }}</strong>
+                    <p>{{ review.description }}</p>
+                    <small>{{ review.date }}</small>
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        {% if user.is_authenticated %}
+                            {% if user == review.user %}
+                                <div><a class="btn btn-danger mt-auto"
+                                        href="{% url 'DeleteMealReviews' review.id %}">
+                                    Delete Review</a>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>There are no reviews on this meal yet...</p>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}
