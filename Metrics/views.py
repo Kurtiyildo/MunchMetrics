@@ -39,6 +39,7 @@ class IndexView(View):
             random_restaurant = random.choice(restaurant_queryset)
 
         context = {
+            'restaurant_queryset': restaurant_queryset,
             'random_restaurant': random_restaurant,
             'cuisines': CUISINES,
             'restaurant_page': restaurant_page,
@@ -87,32 +88,33 @@ class AddRestaurant(View):
             restaurant = form.save(commit=False)
             restaurant.owner = request.user
             restaurant.save()
-            form = RestaurantForm()
+        messages.success(request, "Added Succesfully ")
 
-        context = {'form': form}
-        return render(request, 'Metrics/restaurantform.html', context)
+        return redirect('AddRestaurant')
 
 
 class UpdateRestaurant(View):
     def get(self, request, pk):
         restaurant = get_object_or_404(Restaurant, id=pk)
-        if request.user == restaurant.owner:
+        if request.user == restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = RestaurantForm(instance=restaurant)
             context = {'form': form, 'restaurant': restaurant}
             return render(request, 'Metrics/restaurantform.html', context)
+
         else:
             return redirect('index')
 
     def post(self, request, pk):
         restaurant = get_object_or_404(Restaurant, id=pk)
-        if request.user == restaurant.owner:
+        if request.user == restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = RestaurantForm(request.POST, request.FILES, instance=restaurant)
             if form.is_valid():
                 form.save()
-                return redirect('index')
+                messages.success(request, "Updated Succesfully ")
+
+                return redirect('Menu', restaurant_id=restaurant.id)
             else:
-                context = {'form': form, 'restaurant': restaurant}
-                return render(request, 'Metrics/restaurantform.html', context)
+                return redirect('UpdateRestaurant')
         else:
             return redirect('index')
 
@@ -120,7 +122,7 @@ class UpdateRestaurant(View):
 class DeleteRestaurant(View):
     def get(self, request, pk):
         restaurant = get_object_or_404(Restaurant, id=pk)
-        if request.user == restaurant.owner:
+        if request.user == restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             restaurant.delete()
         return redirect('index')
 
@@ -128,15 +130,19 @@ class DeleteRestaurant(View):
 class DeleteRestaurantReviews(View):
     def get(self, request, pk):
         review = get_object_or_404(ReviewRestaurant, id=pk)
-        if request.user == review.user:
+        if request.user == review.user or request.user.groups.filter(name="Administrator").exists():
             review.delete()
-        return redirect('index')
+            messages.success(request, "Deleted Successfully ")
+        return redirect(request.META.get('HTTP_REFERER'))
 
 
 class AddMeal(View):
     def get(self, request):
         form = MealForm()
-        form.fields['restaurant'].queryset = Restaurant.objects.filter(owner=request.user)
+        if request.user.groups.filter(name="Administrator").exists():
+            form = MealForm()
+        else:
+            form.fields['restaurant'].queryset = Restaurant.objects.filter(owner=request.user)
         meal_list = Meal.objects.all()
         context = {'form': form,
                    'meal_list': meal_list}
@@ -146,42 +152,41 @@ class AddMeal(View):
         form = MealForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
-            form = MealForm()
-
-        context = {'form': form}
-        return render(request, 'Metrics/mealform.html', context)
+            messages.success(request, "Added Succesfully ")
+        return redirect('AddMeal')
 
 
 class UpdateMeal(View):
     def get(self, request, pk):
         meal = get_object_or_404(Meal, id=pk)
-        if request.user == meal.restaurant.owner:
+        if request.user == meal.restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = MealForm(instance=meal)
             context = {'form': form, 'meal': meal}
             return render(request, 'Metrics/mealform.html', context)
         else:
-            return redirect('index')
+            messages.warning(request, "You Can't do that")
+            return redirect(request.META.get('HTTP_REFERER'))
 
     def post(self, request, pk):
         meal = get_object_or_404(Meal, id=pk)
-        if request.user == meal.restaurant.owner:
+        if request.user == meal.restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = MealForm(request.POST, request.FILES, instance=meal)
             if form.is_valid():
                 form.save()
-                return redirect('index')
+                messages.success(request, "Updated Successfully ")
+                return redirect(request.META.get('HTTP_REFERER'))
             else:
-                context = {'form': form, 'meal': meal}
-                return render(request, 'Metrics/mealform.html', context)
+                return redirect('AddMeal')
         else:
-            return redirect('index')
+            return redirect(request.META.get('HTTP_REFERER'))
 
 
 class DeleteMeal(View):
     def get(self, request, pk):
         meal = get_object_or_404(Meal, id=pk)
-        if request.user == meal.restaurant.owner:
+        if request.user == meal.restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             meal.delete()
-        return redirect('index')
+        return redirect(request.META.get('HTTP_REFERER'))
 
 
 class MealReviews(View):
@@ -213,9 +218,9 @@ class MealReviews(View):
 class DeleteMealReviews(View):
     def get(self, request, pk):
         review = get_object_or_404(ReviewMeal, id=pk)
-        if request.user == review.user:
+        if request.user == review.user or request.user.groups.filter(name="Administrator").exists():
             review.delete()
-        return redirect('index')
+        return redirect(request.META.get('HTTP_REFERER'))
 
 
 class ProfileView(View):
@@ -273,9 +278,8 @@ class Register(View):
             return redirect('index')
 
         else:
-            form = RegisterForm
-            messages.success(request, "Register is not completed please try again")
-            return render(request, 'Metrics/register.html', {'form': form})
+            messages.warning(request, "Register is not completed please try again")
+            return redirect('Register')
 
 
 class UpdateUser(View):
@@ -292,7 +296,7 @@ class UpdateUser(View):
                 form.save()
                 messages.success(request, "Updated Successfully")
 
-            return render(request, 'Metrics/update_user.html', {'form': form})
+            return redirect('ProfileView')
 
         else:
             messages.success(request, "You must be logged in")

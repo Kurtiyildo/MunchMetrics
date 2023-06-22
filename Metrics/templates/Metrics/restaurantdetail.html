@@ -1,6 +1,7 @@
 {% extends 'Metrics/base.html' %}
 {% load static %}
 {% load ratings %}
+{% load mytags %}
 
 {% block title %}{{ restaurant.name }}'s Menu{% endblock %}
 
@@ -20,6 +21,10 @@
         <div class="container px-4 px-lg-5 mt-5">
             <header><h3>Restaurant Menu</h3></header>
             <br>
+            {% if not meal_list %}
+                <div style="text-align: center"><h4>No meals have been added...</h4></div>
+                <br>
+            {% endif %}
             <div class="row gx-4 gx-lg-5 row-cols-2 row-cols-md-3 row-cols-xl-4 justify-content-center">
                 {% if meal_list %}
                     {% for meal in meal_list %}
@@ -52,8 +57,9 @@
                                     </div>
                                     <br>
                                     {% if user.is_authenticated %}
-                                        {% if user == restaurant.owner %}
+                                        {% if user == restaurant.owner or request.user|has_group:"Administrator" %}
                                             <div class="text-center"><a class="btn btn-danger mt-auto"
+                                                                        onclick="return confirm('Are you sure about that?')"
                                                                         href="{% url 'DeleteMeal' meal.id %}">
                                                 Delete Meal</a>
                                             </div>
@@ -68,9 +74,6 @@
                             </div>
                         </div>
                     {% endfor %}
-                {% else %}
-
-                    <div style="text-align: center"><h4>No meals have been added...</h4></div>
                 {% endif %}
                 {% if user.is_authenticated %}
                     {% if user == restaurant.owner %}
@@ -130,8 +133,9 @@
                         <small>{{ review.date }}</small>
                         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                             {% if user.is_authenticated %}
-                                {% if user == review.user %}
+                                {% if user == review.user or request.user|has_group:"Administrator" %}
                                     <div><a class="btn btn-danger mt-auto"
+                                            onclick="return confirm('Are you sure about that?')"
                                             href="{% url 'DeleteRestaurantReviews' review.id %}">
                                         Delete Review</a>
                                     </div>
@@ -147,8 +151,9 @@
         <!--Restaurant Delete Button-->
         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
             {% if user.is_authenticated %}
-                {% if user == restaurant.owner %}
+                {% if user == restaurant.owner or request.user|has_group:"Administrator" %}
                     <div class="text-center"><a class="btn btn-danger mt-auto"
+                                                onclick="return confirm('Are you sure about that?')"
                                                 href="{% url 'DeleteRestaurant' restaurant.id %}">
                         Delete Restaurant</a></div>
                     <br>

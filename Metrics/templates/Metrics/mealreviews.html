@@ -1,5 +1,6 @@
 {% extends 'Metrics/base.html' %}
 {% load static %}
+{% load mytags %}
 {% block title %}{{ meal.name }}'s Reviews{% endblock %}
 
 {% block content %}
@@ -26,8 +27,9 @@
                     <small>{{ review.date }}</small>
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                         {% if user.is_authenticated %}
-                            {% if user == review.user %}
+                            {% if user == review.user or request.user|has_group:"Administrator" %}
                                 <div><a class="btn btn-danger mt-auto"
+                                        onclick="return confirm('Are you sure about that?')"
                                         href="{% url 'DeleteMealReviews' review.id %}">
                                     Delete Review</a>
                                 </div>
