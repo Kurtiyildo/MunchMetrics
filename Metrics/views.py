@@ -9,18 +9,25 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import Restaurant, Meal, Profile, ReviewMeal, ReviewRestaurant, CUISINES
 import random
+from django.db.models import Avg, Count
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 
 class IndexView(View):
     def get(self, request):
         restaurant_queryset = Restaurant.objects.all()
         sort_method = request.GET.get('sort')
+
+        print(sort_method)
+
         if sort_method:
             restaurant_queryset = restaurant_queryset.order_by(sort_method)
         else:
             restaurant_queryset = restaurant_queryset.order_by('name')
 
         cuisine_method = request.GET.get('cuisine')
+        print(cuisine_method)
         if cuisine_method:
             restaurant_queryset = restaurant_queryset.filter(cuisine=cuisine_method)
         search_method = request.GET.get('search')
@@ -31,8 +38,12 @@ class IndexView(View):
                                                              Q(cuisine__icontains=search_method) |
                                                              Q(meal__name__icontains=search_method)).distinct()
 
-        restaurant_paginator = Paginator(restaurant_queryset, 9)
+        restaurant_queryset = restaurant_queryset.annotate(num_meals=Count('meal'))
+        restaurant_queryset = restaurant_queryset.annotate(avg_price=Avg('meal__price'))
+
+        restaurant_paginator = Paginator(restaurant_queryset, 3)
         page_num = request.GET.get('page')
+        print(page_num)
         restaurant_page = restaurant_paginator.get_page(page_num)
         random_restaurant = None
         if restaurant_queryset:
@@ -44,8 +55,33 @@ class IndexView(View):
             'cuisines': CUISINES,
             'restaurant_page': restaurant_page,
         }
+        if request.GET.get('flag'):
+            return render(request, "Metrics/restaurantajax.html", context)
 
         return render(request, "Metrics/restaurantindex.html", context)
+
+
+# def post(request):
+#     restaurant_queryset = Restaurant.objects.all()
+#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+#         sort_method = request.GET.get('sort')
+#
+#         if sort_method:
+#             restaurant_queryset = restaurant_queryset.order_by(sort_method)
+#         else:
+#             restaurant_queryset = restaurant_queryset.order_by('name')
+#
+#         restaurant_queryset = render_to_string(
+#             template_name="Metrics/restaurantindex.html",
+#             context={
+#                 'restaurant_queryset': restaurant_queryset,
+#             }
+#         )
+#
+#         json_sort = {"sort_by_choice":  restaurant_queryset}
+#         return JsonResponse(data=json_sort, safe=False)
+#
+#     return render(request, 'Metrics/restaurantindex.html', {'restaurant_queryset':  restaurant_queryset})
 
 
 class RestaurantDetailView(View):

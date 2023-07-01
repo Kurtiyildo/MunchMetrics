@@ -31,122 +31,74 @@
     {% else %}
         <!-- Page content-->
         <div class="container">
-        <div class="row">
-            <!-- Restaurants -->
-            <div class="col-lg-8">
-                <!-- Featured Restaurant-->
-                <div class="card mb-4">
-                    {% if random_restaurant.image %}
+            <div class="row">
+                <!-- Restaurants -->
+                {% include 'Metrics/restaurantajax.html' %}
+                <!-- Side widgets-->
+                <div class="col-lg-4">
+                    <!-- Sort widget-->
+                    <div class="dropdown">
+                        <form>
+                            <div class="form-group">
 
-                        <img class="card-img-top" src="{{ random_restaurant.image.url }}"
-                             alt="{{ random_restaurant.name }}"/>
-                    {% endif %}
+                                <select class="form-control" name="sort" id="sort">
 
-                    <div class="card-body">
-                        <h2 class="card-title">{{ random_restaurant.name }}</h2>
-                        <p class="card-text">{{ random_restaurant.description }}</p>
-                        {% ratings random_restaurant %}
-                        <a class="btn btn-primary" href="{% url 'Menu' random_restaurant.id %}">See the Menu</a>
-                    </div>
+                                    <option value="-id"> Newest first</option>
+                                    <option value="id"> Oldest first</option>
+                                    <option value="name">Restaurant name (a to z)</option>
+                                    <option value="-name">Restaurant name (z to a)</option>
 
-
-                </div>
-                <!-- Nested row for non-featured Restaurants-->
-                <div class="container py-3">
-                    <div class="row">
-                        {% for restaurant in restaurant_page %}
-                            <div class="col-lg-4 pb-4">
-                                <div class="card h-100">
-                                    {% if restaurant.image %}
-                                        <img src="{{ restaurant.image.url }}" class="card-img-top"
-                                             alt="{{ restaurant.name }}">
-                                    {% endif %}
-                                    <div class="card-body">
-                                        <h5 class="card-title">{{ restaurant.name }}</h5>
-                                        <p class="card-text">{{ restaurant.description }}</p>
-                                        <div class="d-flex justify-content-center small text mb-2">
-                                            {% ratings restaurant %}
-                                        </div>
-                                        <a href="{% url 'Menu' restaurant.id %}" class="btn btn-primary">See the
-                                            Menu</a>
-                                    </div>
-                                </div>
+                                </select>
                             </div>
-                        {% endfor %}
+                        </form>
                     </div>
-                </div>
-
-
-                <!-- Pagination!-->
-                <nav aria-label="Pagination">
-                    <hr class="my-0"/>
-                    <ul class="pagination justify-content-center my-4">
-
-                        {% if restaurant_page.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?{% param_replace page=1 %}"> <| </a></li>
-                            <li class="page-item"><a class="page-link"
-                                                     href="?{% param_replace page=restaurant_page.previous_page_number %}">
-                                <--
-                            </a></li>
-                        {% endif %}
-
-                        {% for page in restaurant_page.paginator.page_range %}
-                            {% if restaurant_page.number == page %}
-                                <li class="page-item"><a class="page-link"
-                                                         href="?{% param_replace page=page %}">{{ page }}</a></li>
-                            {% elif page > restaurant_page.number|add:'-3' and page < restaurant_page.number|add:'3' %}
-                                <li class="page-item"><a class="page-link"
-                                                         href="?{% param_replace page=page %}">{{ page }}</a></li>
-                            {% endif %}
-                        {% endfor %}
-
-                        {% if restaurant_page.has_next %}
-                            <li class="page-item"><a class="page-link"
-                                                     href="?{% param_replace page=restaurant_page.next_page_number %}">
-                                --> </a></li>
-                            <li class="page-item"><a class="page-link"
-                                                     href="?{% param_replace page=restaurant_page.paginator.num_pages %}">>|
-                            </a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </nav>
-
-            </div>
-            <!-- Side widgets-->
-            <div class="col-lg-4">
-                <!-- Sort widget-->
-                <div class="dropdown">
-                    <form>
-                        <div class="form-group">
-                            <select multiple class="form-control" name="sort" onchange="this.form.submit()">
-
-                                <option value="-id"> Newest first</option>
-                                <option value="id"> Oldest first</option>
-                                <option value="name">Restaurant name (a to z)</option>
-                                <option value="-name">Restaurant name (z to a)</option>
-
-
-                            </select>
-                        </div>
-                    </form>
-                </div>
-                <br>
-                <!-- Search widget-->
-                <div class="header-search open-search">
-                    <div class="container">
-                        <div class="row">
-                            <div class="col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1">
-                                <div class="navbar-search">
-                                    <form class="search-global">
+                    <br>
+                    <!-- Search widget-->
+                    <div class="header-search open-search">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-sm-8 col-sm-offset-2 col-xs-10 col-xs-offset-1">
+                                    <div class="navbar-search">
                                         <input type="text" placeholder="Type then enter" name="search" id="tags"
                                                value=""
                                                class="search-global-input"/>
-                                        <button class="search-global-btn">Enter</button>
-                                        <div class="search-global-note">Type your search query above and then press to
-                                            enter
-                                            or click on
-                                            icon
+                                        <button class="search-global-btn" id="searchbutton">Enter</button>
+                                        <div class="search-global-note">Type your search query above and then press
+                                            to enter or click on icon
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <script>
+                        $(function () {
+                            var availableTags = [
+                                {% for restaurant in restaurant_queryset %}
+                                    "{{restaurant.name}}",
+                                {% endfor %}
+                            ];
+                            $("#tags").autocomplete({
+                                source: availableTags
+                            });
+                        });
+                    </script>
+                    <br>
+                    <!-- Categories widget-->
+                    <div class="card mb-4">
+                        <div class="card-header">Cuisines</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <form action="{% url 'index' %}">
+                                        <div class="form-group">
+                                            <select class="form-control" name="cuisine" id="cuisine">
+                                                <option value="">All</option>
+                                                {% for key, value in cuisines %}
+                                                    <option value="{{ key }}">{{ key }}</option>
+                                                {% endfor %}
+                                            </select>
                                         </div>
                                     </form>
                                 </div>
@@ -154,42 +106,40 @@
                         </div>
                     </div>
                 </div>
-                <script>
-                    $(function () {
-                        var availableTags = [
-                            {% for restaurant in restaurant_queryset %}
-                                "{{restaurant.name}}",
-                            {% endfor %}
-                        ];
-                        $("#tags").autocomplete({
-                            source: availableTags
-                        });
-                    });
-                </script>
-                <br>
-                <!-- Categories widget-->
-                <div class="card mb-4">
-                    <div class="card-header">Cuisines</div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-sm-6">
-                                <form action="{% url 'index' %}">
-                                    <div class="form-group">
-                                        <select multiple class="form-control" name="cuisine"
-                                                onchange="this.form.submit()">
-
-                                            {% for key, value in cuisines %}
-                                                <option value="{{ key }}">{{ key }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     {% endif %}
+{% endblock %}
+
+{% block script %}
+    <script>
+        var page = 1
+
+        function pagination(new_page) {
+            page = new_page;
+            $.fn.myFunction()
+        }
+
+        $.fn.myFunction = function () {
+            var sort_method = $('#sort').val();
+            var cuisine_method = $('#cuisine').val();
+            var search_method = $('#tags').val();
+            $.ajax({
+                type: 'GET',
+                url: $(this).data('url'),
+                data: {'sort': sort_method, 'cuisine': cuisine_method, 'search': search_method,'page':page, 'flag': true}
+            }).done(function (response) {
+                $('#restaurants').replaceWith(response);
+            });
+        };
+
+        $(document).ready(function () {
+            $('#sort').on('change', $.fn.myFunction);
+            $('#cuisine').on('change', $.fn.myFunction);
+            $('#tags').on('change', $.fn.myFunction);
+
+        });
+
+    </script>
 {% endblock %}
 
