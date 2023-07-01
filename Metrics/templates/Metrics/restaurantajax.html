@@ -1,0 +1,93 @@
+{% load static %}
+{% load ratings %}
+{% load mytags %}
+<div class="col-lg-8" id="restaurants">
+    <!-- Featured Restaurant-->
+    {% if not random_restaurant %}
+        <div style="text-align: center"><h4>Nothing found</h4></div>
+        <br>
+
+    {% else %}
+        <div class="card mb-4">
+            {% if random_restaurant.image %}
+
+                <img class="card-img-top" src="{{ random_restaurant.image.url }}"
+                     alt="{{ random_restaurant.name }}"/>
+            {% endif %}
+
+            <div class="card-body">
+                <h2 class="card-title">{{ random_restaurant.name }}</h2>
+                <p class="card-text">{{ random_restaurant.description }}</p>
+                {% ratings random_restaurant %}
+                <a class="btn btn-primary" href="{% url 'Menu' random_restaurant.id %}">See the Menu</a>
+            </div>
+
+
+        </div>
+        <!-- Nested row for non-featured Restaurants-->
+        <div class="container py-3">
+            <div class="row">
+                {% for restaurant in restaurant_page %}
+                    <div class="col-lg-4 pb-4">
+                        <div class="card h-100">
+                            {% if restaurant.image %}
+                                <img src="{{ restaurant.image.url }}" class="card-img-top"
+                                     alt="{{ restaurant.name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ restaurant.name }}</h5>
+                                <p class="card-text">{{ restaurant.description }}</p>
+                                <h6 class="card-text text-muted">Number of
+                                    Meals: {{ restaurant.num_meals }}</h6>
+                                {% if restaurant.avg_price %}
+                                    <h6 class="card-text ">Average Price: {{ restaurant.avg_price }}TL</h6>
+                                {% endif %}
+                                <div class="d-flex justify-content-center small text mb-2">
+                                    {% ratings restaurant %}
+                                </div>
+                                <a href="{% url 'Menu' restaurant.id %}" class="btn btn-primary">See the
+                                    Menu</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
+        <!-- Pagination!-->
+        <nav aria-label="Pagination">
+            <hr class="my-0"/>
+            <ul class="pagination justify-content-center my-4">
+
+                {% if restaurant_page.has_previous %}
+                    <li class="page-item"><a class="page-link" href="javascript:pagination({{ page }})"> <| </a></li>
+                    <li class="page-item"><a class="page-link"
+                                             href="javascript:pagination({{ restaurant_page.previous_page_number }})">
+                        <--
+                    </a></li>
+                {% endif %}
+
+                {% for page in restaurant_page.paginator.page_range %}
+                    {% if restaurant_page.number == page %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="javascript:pagination({{ page }})">{{ page }}</a></li>
+                    {% elif page > restaurant_page.number|add:'-3' and page < restaurant_page.number|add:'3' %}
+                        <li class="page-item"><a class="page-link"
+                                                 href="javascript:pagination({{ page }})">{{ page }}</a></li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if restaurant_page.has_next %}
+                    <li class="page-item"><a class="page-link"
+                                             href="javascript:pagination({{ restaurant_page.next_page_number }})">
+                        --> </a></li>
+                    <li class="page-item"><a class="page-link"
+                                             href="javascript:pagination({{ restaurant_page.paginator.num_pages }})">>|
+                    </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
