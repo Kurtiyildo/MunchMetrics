@@ -17,7 +17,7 @@
 
             <div class="card-body">
                 <h2 class="card-title">{{ random_restaurant.name }}</h2>
-                <p class="card-text">{{ random_restaurant.description }}</p>
+                <p class="card-text">{{ random_restaurant.description|striptags|slice:"0:50"}}</p>
                 {% ratings random_restaurant %}
                 <a class="btn btn-primary" href="{% url 'Menu' random_restaurant.id %}">See the Menu</a>
             </div>
@@ -36,7 +36,7 @@
                             {% endif %}
                             <div class="card-body">
                                 <h5 class="card-title">{{ restaurant.name }}</h5>
-                                <p class="card-text">{{ restaurant.description }}</p>
+                                <p class="card-text">{{ restaurant.description|striptags|slice:"0:50" }}</p>
                                 <h6 class="card-text text-muted">Number of
                                     Meals: {{ restaurant.num_meals }}</h6>
                                 {% if restaurant.avg_price %}

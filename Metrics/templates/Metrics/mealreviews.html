@@ -22,8 +22,8 @@
             {% if meal.reviews.all %}
                 {% for review in meal.reviews.all %}
                     <h3>{{ review.user }} says:</h3>
-                    <strong>{{ review.title }}</strong>
-                    <p>{{ review.description }}</p>
+                    <strong>{{ review.title }}</strong><br>
+                    {{ review.description|safe }}
                     <small>{{ review.date }}</small>
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                         {% if user.is_authenticated %}

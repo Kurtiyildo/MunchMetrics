@@ -138,3 +138,10 @@ STATICFILES_DIR = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STAR_RATINGS_RERATE_SAME_DELETE = True
+
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'basic',
+
+    },
+}

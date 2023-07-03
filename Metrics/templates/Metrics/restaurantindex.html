@@ -113,30 +113,36 @@
 
 {% block script %}
     <script>
-        var page = 1
+        var page = 1;
 
         function pagination(new_page) {
             page = new_page;
-            $.fn.myFunction()
+            $.fn.refreshPage();
         }
 
-        $.fn.myFunction = function () {
+        $.fn.refreshPage = function () {
             var sort_method = $('#sort').val();
             var cuisine_method = $('#cuisine').val();
             var search_method = $('#tags').val();
             $.ajax({
                 type: 'GET',
                 url: $(this).data('url'),
-                data: {'sort': sort_method, 'cuisine': cuisine_method, 'search': search_method,'page':page, 'flag': true}
+                data: {
+                    'sort': sort_method,
+                    'cuisine': cuisine_method,
+                    'search': search_method,
+                    'page': page,
+                    'only_restaurants': true
+                }
             }).done(function (response) {
                 $('#restaurants').replaceWith(response);
             });
         };
 
         $(document).ready(function () {
-            $('#sort').on('change', $.fn.myFunction);
-            $('#cuisine').on('change', $.fn.myFunction);
-            $('#tags').on('change', $.fn.myFunction);
+            $('#sort').on('change', $.fn.refreshPage);
+            $('#cuisine').on('change', $.fn.refreshPage);
+            $('#tags').on('change', $.fn.refreshPage);
 
         });
 

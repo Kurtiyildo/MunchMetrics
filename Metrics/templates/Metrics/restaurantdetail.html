@@ -19,7 +19,10 @@
 
     <section class="py-5">
         <div class="container px-4 px-lg-5 mt-5">
-            <header><h3>Restaurant Menu</h3></header>
+            <header><h2>Restaurant Menu</h2></header>
+            <header><h3>{{ restaurant.name }}</h3></header>
+            <header><h4>In "{{ restaurant.address }}"</h4></header><br>
+            {{ restaurant.description|safe }} <br>
             <br>
             {% if not meal_list %}
                 <div style="text-align: center"><h4>No meals have been added...</h4></div>
@@ -129,7 +132,8 @@
                     {% for review in restaurant.reviews.all %}
                         <h3>{{ review.user }} says:</h3>
                         <strong>{{ review.title }}</strong>
-                        <p>{{ review.description }}</p>
+                        <br>
+                        <div>{{ review.description|safe }}</div>
                         <small>{{ review.date }}</small>
                         <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                             {% if user.is_authenticated %}

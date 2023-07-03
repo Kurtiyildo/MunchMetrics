@@ -45,7 +45,7 @@ class Meal(models.Model):
 class Restaurant(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
-    description = models.TextField(max_length=100)
+    description = RichTextField()
     address = models.CharField(null=True, blank=True, max_length=200)
     cuisine = models.CharField(max_length=75, choices=CUISINES)
     image = models.ImageField(null=True, blank=True, default='images/default.png', upload_to='images/')

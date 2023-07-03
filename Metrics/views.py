@@ -10,8 +10,6 @@ from django.contrib.auth.models import User
 from .models import Restaurant, Meal, Profile, ReviewMeal, ReviewRestaurant, CUISINES
 import random
 from django.db.models import Avg, Count
-from django.http import JsonResponse
-from django.template.loader import render_to_string
 
 
 class IndexView(View):
@@ -19,15 +17,12 @@ class IndexView(View):
         restaurant_queryset = Restaurant.objects.all()
         sort_method = request.GET.get('sort')
 
-        print(sort_method)
-
         if sort_method:
             restaurant_queryset = restaurant_queryset.order_by(sort_method)
         else:
             restaurant_queryset = restaurant_queryset.order_by('name')
 
         cuisine_method = request.GET.get('cuisine')
-        print(cuisine_method)
         if cuisine_method:
             restaurant_queryset = restaurant_queryset.filter(cuisine=cuisine_method)
         search_method = request.GET.get('search')
@@ -41,9 +36,8 @@ class IndexView(View):
         restaurant_queryset = restaurant_queryset.annotate(num_meals=Count('meal'))
         restaurant_queryset = restaurant_queryset.annotate(avg_price=Avg('meal__price'))
 
-        restaurant_paginator = Paginator(restaurant_queryset, 3)
+        restaurant_paginator = Paginator(restaurant_queryset, 9)
         page_num = request.GET.get('page')
-        print(page_num)
         restaurant_page = restaurant_paginator.get_page(page_num)
         random_restaurant = None
         if restaurant_queryset:
@@ -55,33 +49,10 @@ class IndexView(View):
             'cuisines': CUISINES,
             'restaurant_page': restaurant_page,
         }
-        if request.GET.get('flag'):
+        if request.GET.get('only_restaurants'):
             return render(request, "Metrics/restaurantajax.html", context)
 
         return render(request, "Metrics/restaurantindex.html", context)
-
-
-# def post(request):
-#     restaurant_queryset = Restaurant.objects.all()
-#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-#         sort_method = request.GET.get('sort')
-#
-#         if sort_method:
-#             restaurant_queryset = restaurant_queryset.order_by(sort_method)
-#         else:
-#             restaurant_queryset = restaurant_queryset.order_by('name')
-#
-#         restaurant_queryset = render_to_string(
-#             template_name="Metrics/restaurantindex.html",
-#             context={
-#                 'restaurant_queryset': restaurant_queryset,
-#             }
-#         )
-#
-#         json_sort = {"sort_by_choice":  restaurant_queryset}
-#         return JsonResponse(data=json_sort, safe=False)
-#
-#     return render(request, 'Metrics/restaurantindex.html', {'restaurant_queryset':  restaurant_queryset})
 
 
 class RestaurantDetailView(View):
@@ -123,10 +94,15 @@ class AddRestaurant(View):
         if form.is_valid():
             restaurant = form.save(commit=False)
             restaurant.owner = request.user
+            if Restaurant.objects.filter(name=restaurant.name, address=restaurant.address).exists():
+                messages.error(request, "A restaurant with the same name already exists.")
+                return redirect('AddRestaurant')
             restaurant.save()
-        messages.success(request, "Added Succesfully ")
-
-        return redirect('AddRestaurant')
+            messages.success(request, "Added Successfully")
+            return redirect('AddRestaurant')
+        else:
+            messages.error(request, "Invalid form data.")
+            return redirect('AddRestaurant')
 
 
 class UpdateRestaurant(View):
@@ -145,12 +121,19 @@ class UpdateRestaurant(View):
         if request.user == restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = RestaurantForm(request.POST, request.FILES, instance=restaurant)
             if form.is_valid():
-                form.save()
-                messages.success(request, "Updated Succesfully ")
+                new_restaurant = form.save(commit=False)
+                existing_restaurant = Restaurant.objects.filter(name=new_restaurant.name,
+                                                                address=new_restaurant.address)\
+                                                        .exclude(id=restaurant.id).exists()
+                if existing_restaurant:
+                    messages.error(request, "A restaurant with the same name and address already exists.")
+                    return redirect('UpdateRestaurant', pk=restaurant.id)
 
+                form.save()
+                messages.success(request, "Updated Successfully ")
                 return redirect('Menu', restaurant_id=restaurant.id)
             else:
-                return redirect('UpdateRestaurant')
+                return redirect('UpdateRestaurant', pk=restaurant.id)
         else:
             return redirect('index')
 
@@ -187,8 +170,17 @@ class AddMeal(View):
     def post(self, request):
         form = MealForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Added Succesfully ")
+            meal = form.save(commit=False)
+
+            existing_meal = Meal.objects.filter(name=meal.name, restaurant=meal.restaurant).exists()
+            if existing_meal:
+                messages.error(request, f"A meal with the same name already exists in {meal.restaurant}.")
+            else:
+                meal.save()
+                messages.success(request, "Added Successfully")
+        else:
+            messages.error(request, "Invalid form data.")
+
         return redirect('AddMeal')
 
 
@@ -208,6 +200,14 @@ class UpdateMeal(View):
         if request.user == meal.restaurant.owner or request.user.groups.filter(name="Administrator").exists():
             form = MealForm(request.POST, request.FILES, instance=meal)
             if form.is_valid():
+                new_meal = form.save(commit=False)
+
+                existing_meal = Meal.objects.filter(name=new_meal.name, restaurant=meal.restaurant).exclude(
+                    id=meal.id).exists()
+                if existing_meal:
+                    messages.error(request, f"A meal with the same name already exists in {meal.restaurant}.")
+                    return redirect(request.META.get('HTTP_REFERER'))
+
                 form.save()
                 messages.success(request, "Updated Successfully ")
                 return redirect(request.META.get('HTTP_REFERER'))

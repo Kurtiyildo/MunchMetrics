@@ -13,8 +13,6 @@ class RestaurantForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(
                 attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Name'}),
-            'description': forms.TextInput(
-                attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Description'}),
             'address': forms.TextInput(
                 attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Address'}),
             'cuisine': forms.Select(
@@ -52,8 +50,6 @@ class MealRateForm(ModelForm):
         widgets = {
             'title': forms.TextInput(
                 attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Title'}),
-            'description': forms.TextInput(
-                attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Review'}),
         }
 
 
@@ -65,8 +61,6 @@ class RestaurantRateForm(ModelForm):
         widgets = {
             'title': forms.TextInput(
                 attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Title'}),
-            'description': forms.TextInput(
-                attrs={'class': "form-control", 'style': 'max-width: 300px;', 'placeholder': 'Review'}),
         }
 
 
